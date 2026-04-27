@@ -55,6 +55,10 @@
   font-weight: 500;
 }
 
+.span{
+  font-family:  var(--font-heading);
+}
+
 .h2 {
   font-family: var(--font-heading);
   font-size: var(--text-h2);
