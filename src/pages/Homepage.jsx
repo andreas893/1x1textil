@@ -2,6 +2,7 @@ import React from 'react'
 import FeaturedCat from '../components/FeaturedCat'
 import FeaturedCatSection from '../components/FeaturedCatSection'
 import MissionSection from '../components/MissionSection'
+import CatToggle from '../components/CatToggle'
 import { Link } from 'react-router-dom'
 
 function HomePage() {
@@ -10,7 +11,7 @@ function HomePage() {
       
       <section className='hero grid grid-cols-2 border-b-1'>
        
-        <div className='p-7.5 h-full flex flex-col '>
+        <div className='p-12 h-full flex flex-col '>
           <h1 className='h1 pb-4'>
             Dansk kunsthåndværk
           </h1>
@@ -33,6 +34,15 @@ function HomePage() {
 
       <MissionSection/>
 
+      <CatToggle />
+
+      <section>
+        <div className=''></div>
+
+        <div >
+          
+        </div>
+      </section>
       
       
 

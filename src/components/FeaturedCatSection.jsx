@@ -8,7 +8,7 @@ function FeaturedCatSection() {
     <section className='featured-cat mt-14 mb-14 flex flex-col overflow-hidden'>
 
       {/* Header */}
-      <div className='flex justify-between items-center p-7.5'>
+      <div className='flex justify-between items-center p-12'>
         <h2 className='h2'>Udforsk vores universer</h2>
 
         <div className='flex items-center gap-8'>
