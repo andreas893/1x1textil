@@ -18,7 +18,7 @@ function FeaturedCat() {
       <div className='flex flex-col min-h-0'>
 
         <div className='flex flex-col flex-shrink-0'>
-          <h2 className='h3 mb-1'>Keramik</h2>
+          <h2 className='h2 mb-1'>Keramik</h2>
           <span className='body-sm italic text-[var(--color-muted)]'>
             Håndlavet keramik til hjemmet
           </span>
