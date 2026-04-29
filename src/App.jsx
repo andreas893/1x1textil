@@ -4,6 +4,7 @@ import HomePage from './pages/HomePage'
 import Shop from './pages/Shop'
 import Artist from './pages/Artist'
 import Product from './pages/Product'
+import CategoryPage from './pages/CategoryPage'
 
 import './index.css'
 
@@ -19,6 +20,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/shop" element={<Shop />} />
+        <Route path="/shop/:slug" element={<CategoryPage />} />
         <Route path="/artist/:slug" element={<Artist />} />
         <Route path="/product/:id" element={<Product />} />
       </Routes>
