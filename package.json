@@ -10,10 +10,15 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.105.0",
+    "csv-parser": "^3.2.0",
+    "csv-writer": "^1.6.0",
+    "fs": "^0.0.1-security",
     "lucide-react": "^1.8.0",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
-    "react-router-dom": "^7.14.1"
+    "react-router-dom": "^7.14.1",
+    "slugify": "^1.6.9"
   },
   "devDependencies": {
     "@babel/core": "^7.29.0",
