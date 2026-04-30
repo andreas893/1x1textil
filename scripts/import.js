@@ -334,6 +334,6 @@ async function importFile(filePath) {
 }
 
 // RUN
-await importFile("./data/file13-clean.csv")
+await importFile("./data/file14-clean.csv")
 
 console.log("Import færdig ✅")

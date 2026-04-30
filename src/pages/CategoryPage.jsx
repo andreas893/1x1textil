@@ -2,17 +2,33 @@ import { useParams } from "react-router-dom"
 import { useEffect, useState } from "react"
 import supabase from "../lib/Supabase"
 import { Link } from "react-router-dom"
+import { useRef } from "react"
+import EditorialBlock from "../components/EditorialBlock"
 import { SlidersHorizontal } from "lucide-react"
 import { ArrowDownWideNarrow } from "lucide-react"
 
 export default function CategoryPage() {
-  const { slug } = useParams()
-  const [category, setCategory] = useState(null)
+const gridRef = useRef(null)
+const { slug } = useParams()
+const [category, setCategory] = useState(null)
 const [products, setProducts] = useState([])
 const [subcategories, setSubcategories] = useState([])
 const [parent, setParent] = useState(null)
+const [artists, setArtists] = useState([])
 
-// fetch
+const BREAKPOINT = 12
+
+const firstBatch = products.slice(0, BREAKPOINT)
+const restBatch = products.slice(BREAKPOINT)
+
+const [page, setPage] = useState(1)
+const [totalCount, setTotalCount] = useState(0)
+
+const PAGE_SIZE = 32
+
+const totalPages = Math.ceil(totalCount / PAGE_SIZE)
+
+// fetch kateori
 async function fetchCategory() {
   const { data, error } = await supabase
     .from("categories")
@@ -30,12 +46,11 @@ async function fetchCategory() {
   return data
 }
 
-//fetch produkter fra kategori
+//fetch produkter 
 async function fetchProducts(cat) {
 
   let categoryIds = [cat.id]
 
-  // find children
   const { data: children } = await supabase
     .from("categories")
     .select("id")
@@ -45,32 +60,48 @@ async function fetchProducts(cat) {
     categoryIds = [cat.id, ...children.map(c => c.id)]
   }
 
-  // hent produkter via join table
-  const { data, error } = await supabase
+  const from = (page - 1) * PAGE_SIZE
+  const to = from + PAGE_SIZE - 1
+
+  const { data, error, count } = await supabase
     .from("product_categories")
     .select(`
-      products (
-        id,
-        title,
-        price,
-        image
+       category_id,
+  categories (
+    id,
+    name
+  ),
+  products (
+    id,
+    title,
+    price,
+    image
       )
-    `)
+    `, { count: "exact" })
     .in("category_id", categoryIds)
+    .range(from, to)
 
   if (error) {
-    console.log("Product fetch error:", error)
+    console.log(error)
     return
   }
 
-  // fjern duplicates
   const unique = [
-    ...new Map(
-      data.map(item => [item.products.id, item.products])
-    ).values()
-  ]
+  ...new Map(
+    data
+      .filter(item => item.products)
+      .map(item => [
+        item.products.id,
+        {
+          ...item.products,
+          category: item.categories?.name // 👈 HER
+        }
+      ])
+  ).values()
+]
 
   setProducts(unique)
+  setTotalCount(count || 0)
 }
 
 async function fetchSubcategories(cat) {
@@ -90,7 +121,10 @@ async function fetchSubcategories(cat) {
 
 
 async function fetchParent(cat) {
-  if (!cat.parent_id) return
+  if (!cat.parent_id) {
+    setParent(null) // resetter hver gang man skifter til en ny kategori
+    return
+  }
 
   const { data } = await supabase
     .from("categories")
@@ -99,6 +133,53 @@ async function fetchParent(cat) {
     .single()
 
   setParent(data)
+}
+
+// Hent artists
+async function fetchArtists(cat) {
+
+  let categoryIds = [cat.id]
+
+  const { data: children } = await supabase
+    .from("categories")
+    .select("id")
+    .eq("parent_id", cat.id)
+
+  if (children?.length) {
+    categoryIds = [cat.id, ...children.map(c => c.id)]
+  }
+
+  const { data, error } = await supabase
+    .from("products")
+    .select(`
+      artist_id,
+      artists (
+        id,
+        name,
+        slug,
+        image,
+        bio
+      ),
+      product_categories!inner (
+        category_id
+      )
+    `)
+    .in("product_categories.category_id", categoryIds)
+
+  if (error) {
+    console.log("Artist fetch error:", error)
+    return
+  }
+
+  const unique = [
+    ...new Map(
+      data
+        .filter(item => item.artists)
+        .map(item => [item.artists.id, item.artists])
+    ).values()
+  ]
+
+  setArtists(unique)
 }
 
 //fetch kategori, produkter, breadcrumbs
@@ -111,10 +192,11 @@ useEffect(() => {
     await fetchProducts(cat)
     await fetchSubcategories(cat)
     await fetchParent(cat)
+    await fetchArtists(cat)
   }
 
   init()
-}, [slug])
+}, [slug, page])
 
 // mousewheel scroll
 useEffect(() => {
@@ -133,6 +215,20 @@ useEffect(() => {
 
   return () => el.removeEventListener("wheel", onWheel)
 }, [])
+
+useEffect(() => {
+  setPage(1)
+}, [slug])
+
+//scroll når page ændres
+useEffect(() => {
+  if (gridRef.current) {
+    gridRef.current.scrollIntoView({
+      behavior: "smooth",
+      block: "start"
+    })
+  }
+}, [page])
 
 
 
@@ -173,8 +269,8 @@ useEffect(() => {
 
 
       {/* PRODUCT GRID */}
-      <section className="">
-     <div className="text-sm font-serif mb-6 p-12">
+      <section ref={gridRef}>
+     <div className="text-sm font-serif mb-6 px-12">
             <Link to="/" className="hover:underline">Hjem</Link>
 
             <span className="mx-2">/</span>
@@ -191,75 +287,148 @@ useEffect(() => {
             <span className="cursor-pointer">{category?.name}</span>
         </div>
         
-        <h2 className="h2 mb-4 pl-12">Alt {slug} fra butikken</h2>
+        <h2 className="h2 mb-6 pl-12">Alt {slug} fra butikken</h2>
 
         <div className="flex justify-between mb-6 text-sm border-b border-t pl-12 pr-12 pt-2 pb-2">
-          <button className="flex gap-2">Filtrer <SlidersHorizontal size={20}/> </button>
-          <button className="flex gap-2">Sorter <ArrowDownWideNarrow size={20}/> </button>
+          <button className="flex gap-2 cursor-pointer">Filtrer <SlidersHorizontal size={20}/> </button>
+          <button className="flex gap-2 cursor-pointer">Sorter <ArrowDownWideNarrow size={20}/> </button>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {products.map(p => (
-                <div key={p.id} className="group cursor-pointer">
+            {/* render produktgrid første del */}
+       <div className="grid grid-cols-2 md:grid-cols-4 gap-6 p-12 pt-4">
+            {firstBatch.map(p => (
+                <Link to={`/product/${p.id}`} key={p.id} >
+                      
+                    <div className="group cursor-pointer h-110 bg-surface rounded-[10px]">
 
-                <div className="overflow-hidden">
-                    <img
-                    src={p.image}
-                    className="w-full h-64 object-cover transition-transform duration-300 group-hover:scale-105"
-                    />
-                </div>
+                    <div className="overflow-hidden">
+                        <img
+                        src={p.image}
+                         loading="lazy"
+                         decoding="async"
+                        className="w-full h-76 object-cover rounded-t-[10px] transition-transform duration-300 group-hover:scale-105"
+                        />
+                    </div>
 
-                <div className="mt-3">
-                    <p className="text-sm leading-tight">
-                    {p.title}
-                    </p>
+                    
+                    {/* product card */}
+                    <div className="mt-2 px-4 flex flex-col gap-1">
+                         <p className="body-sm opacity-70 border-b w-[30%]">
+                            {p.category}
+                        </p>
+                        
+                        <p className="mt-1 body leading-tight line-clamp-2">
+                        {p.title}
+                        </p>
 
-                    <p className="text-sm mt-1 text-gray-600">
-                    {p.price} kr
-                    </p>
-                </div>
+                        <p className="body-sm mt-1 font-bold">
+                        {p.price} kr
+                        </p>
+                    </div>
 
-                </div>
+                    </div>
+                </Link>
+              
             ))}
         </div>
-      </section>
 
+        
+        {/* EDITORIAL BLOCK */}
+        <EditorialBlock />
+            
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 p-12 pt-4">
+              {restBatch.map(p => (
+                <Link to={`/product/${p.id}`}>
+                      
+                    <div key={p.id} className="group cursor-pointer h-110 bg-surface rounded-[10px]">
 
-      {/* EDITORIAL BLOCK */}
-      <section className="grid md:grid-cols-2 gap-10 items-center">
-        <img
-          src="https://images.unsplash.com/photo-1582582494700-86f7f0c3d8b5"
-          className="w-full h-[300px] object-cover"
-        />
+                    <div className="overflow-hidden">
+                        <img
+                        src={p.image}
+                        className="w-full h-76 object-cover rounded-t-[10px] transition-transform duration-300 group-hover:scale-105"
+                        />
+                    </div>
 
-        <div>
-          <h3 className="text-xl font-semibold">Nyeste fra kollektionen</h3>
-          <p className="mt-2 text-gray-600">
-            Farverige lysestager og unikke former inspireret af sæsonens stemning.
-          </p>
-          <button className="mt-4 px-4 py-2 border">
-            Se kollektion
-          </button>
+                    
+                    {/* product card */}
+                    <div className="mt-2 px-4 flex flex-col gap-1">
+                         <p className="body-sm opacity-70 border-b w-[30%]">
+                            {p.category}
+                        </p>
+                        
+                        <p className="mt-1 body leading-tight line-clamp-2">
+                        {p.title}
+                        </p>
+
+                        <p className="body-sm mt-1 font-bold">
+                        {p.price} kr
+                        </p>
+                    </div>
+
+                    </div>
+                </Link>
+              
+            ))}
+        </div>
+    
+
+        <div className="flex gap-2 justify-center mt-12">
+
+            <div className="border rounded-[5px]">
+                 {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+                <button
+                key={p}
+                onClick={() => setPage(p)}
+                className={`px-3 py-1 cursor-pointer ${
+                    page === p ? "bg-(--color-text) text-white" : ""
+                }`}
+                >
+                {p}
+                </button>
+            ))}
+            </div>
+
         </div>
       </section>
 
 
       {/* ARTISTS */}
-      <section>
-        <h2 className="text-xl mb-6">Kunsthåndværkere</h2>
+      {artists.length > 0 && (
+        <section className="mt-20 p-12 bg-surface">
 
-        <div className="grid md:grid-cols-3 gap-6">
-          {[1,2,3].map(i => (
-            <div key={i}>
-              <img
-                src="https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e"
-                className="w-full h-56 object-cover rounded"
-              />
-              <p className="mt-2">Kunstner navn</p>
+            <h2 className="h2 mb-6">
+            Kunsthåndværkere 
+            </h2>
+
+            <div className="flex overflow-x-auto no-scrollbar snap-x snap-mandatory gap-4">
+
+            {artists.slice(0, 6).map(artist => (
+                <Link to={`/artist/${artist.slug}`} key={artist.id} className="group min-w-[340px] p-2 flex flex-col gap-4">
+                
+                    <div className="overflow-hidden">
+                    <img
+                        src={artist.image}
+                        className="w-full h-100 object-cover rounded-[5px] group-hover:scale-105 transition"
+                    />
+                    </div>
+
+                    <h3 className="mt-2 h3 font-sans">
+                    {artist.name}
+                    </h3>
+
+                     <p className="text-sm mt-1 line-clamp-2">
+                        {artist.bio}
+                    </p>
+
+                    <button className="bg-(--color-text) w-fit text-white px-2 py-1 rounded-[10px] cursor-pointer">Se alle produkter</button>
+                </Link>
+                
+            ))}
+
             </div>
-          ))}
-        </div>
-      </section>
+
+        </section>
+        )}
 
 
       {/* INSPIRATION */}
