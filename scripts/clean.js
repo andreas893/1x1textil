@@ -3,7 +3,7 @@ import csv from "csv-parser"
 import { createObjectCsvWriter } from "csv-writer"
 
 const INPUT_FILES = [
-  "./data/file13.csv"
+  "./data/file14.csv"
 ]
 
 const MAX_PRODUCTS = 30
