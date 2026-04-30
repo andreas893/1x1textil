@@ -2,7 +2,7 @@ import React from 'react'
 
 function EditorialBlock() {
   return (
-    <div className="grid md:grid-cols-2 gap-10 items-center">
+    <div className="grid md:grid-cols-2 gap-10 p-12 items-center">
                 <img
                 src="https://images.unsplash.com/photo-1582582494700-86f7f0c3d8b5"
                 className="w-full h-[300px] object-cover"

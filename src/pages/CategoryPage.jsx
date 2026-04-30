@@ -3,7 +3,8 @@ import { useEffect, useState } from "react"
 import supabase from "../lib/Supabase"
 import { Link } from "react-router-dom"
 import { useRef } from "react"
-import EditorialBlock from "../components/EditorialBlock"
+import ArtistModul from "../components/ArtistModul"
+import ProductGrid from "../components/ProductGrid"
 import { SlidersHorizontal } from "lucide-react"
 import { ArrowDownWideNarrow } from "lucide-react"
 
@@ -294,82 +295,13 @@ useEffect(() => {
           <button className="flex gap-2 cursor-pointer">Sorter <ArrowDownWideNarrow size={20}/> </button>
         </div>
 
-            {/* render produktgrid første del */}
-       <div className="grid grid-cols-2 md:grid-cols-4 gap-6 p-12 pt-4">
-            {firstBatch.map(p => (
-                <Link to={`/product/${p.id}`} key={p.id} >
-                      
-                    <div className="group cursor-pointer h-110 bg-surface rounded-[10px]">
+        <ProductGrid 
+            products={products}
+            layout="grid"
+            showEditorial={true}
+            columns={4}
+        />
 
-                    <div className="overflow-hidden">
-                        <img
-                        src={p.image}
-                         loading="lazy"
-                         decoding="async"
-                        className="w-full h-76 object-cover rounded-t-[10px] transition-transform duration-300 group-hover:scale-105"
-                        />
-                    </div>
-
-                    
-                    {/* product card */}
-                    <div className="mt-2 px-4 flex flex-col gap-1">
-                         <p className="body-sm opacity-70 border-b w-[30%]">
-                            {p.category}
-                        </p>
-                        
-                        <p className="mt-1 body leading-tight line-clamp-2">
-                        {p.title}
-                        </p>
-
-                        <p className="body-sm mt-1 font-bold">
-                        {p.price} kr
-                        </p>
-                    </div>
-
-                    </div>
-                </Link>
-              
-            ))}
-        </div>
-
-        
-        {/* EDITORIAL BLOCK */}
-        <EditorialBlock />
-            
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 p-12 pt-4">
-              {restBatch.map(p => (
-                <Link to={`/product/${p.id}`}>
-                      
-                    <div key={p.id} className="group cursor-pointer h-110 bg-surface rounded-[10px]">
-
-                    <div className="overflow-hidden">
-                        <img
-                        src={p.image}
-                        className="w-full h-76 object-cover rounded-t-[10px] transition-transform duration-300 group-hover:scale-105"
-                        />
-                    </div>
-
-                    
-                    {/* product card */}
-                    <div className="mt-2 px-4 flex flex-col gap-1">
-                         <p className="body-sm opacity-70 border-b w-[30%]">
-                            {p.category}
-                        </p>
-                        
-                        <p className="mt-1 body leading-tight line-clamp-2">
-                        {p.title}
-                        </p>
-
-                        <p className="body-sm mt-1 font-bold">
-                        {p.price} kr
-                        </p>
-                    </div>
-
-                    </div>
-                </Link>
-              
-            ))}
-        </div>
     
 
         <div className="flex gap-2 justify-center mt-12">
@@ -393,42 +325,7 @@ useEffect(() => {
 
 
       {/* ARTISTS */}
-      {artists.length > 0 && (
-        <section className="mt-20 p-12 bg-surface">
-
-            <h2 className="h2 mb-6">
-            Kunsthåndværkere 
-            </h2>
-
-            <div className="flex overflow-x-auto no-scrollbar snap-x snap-mandatory gap-4">
-
-            {artists.slice(0, 6).map(artist => (
-                <Link to={`/artist/${artist.slug}`} key={artist.id} className="group min-w-[340px] p-2 flex flex-col gap-4">
-                
-                    <div className="overflow-hidden">
-                    <img
-                        src={artist.image}
-                        className="w-full h-100 object-cover rounded-[5px] group-hover:scale-105 transition"
-                    />
-                    </div>
-
-                    <h3 className="mt-2 h3 font-sans">
-                    {artist.name}
-                    </h3>
-
-                     <p className="text-sm mt-1 line-clamp-2">
-                        {artist.bio}
-                    </p>
-
-                    <button className="bg-(--color-text) w-fit text-white px-2 py-1 rounded-[10px] cursor-pointer">Se alle produkter</button>
-                </Link>
-                
-            ))}
-
-            </div>
-
-        </section>
-        )}
+        <ArtistModul artists={artists} title={`Kunsthåndværkere inden for ${category?.name}`} />
 
 
       {/* INSPIRATION */}
