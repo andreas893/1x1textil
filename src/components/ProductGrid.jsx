@@ -20,7 +20,7 @@ export default function ProductGrid({
       <div
         className={
           layout === "grid"
-            ? `grid grid-cols-2 md:grid-cols-${columns} p-12 pt-4 gap-6`
+            ? `grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 p-6 md:p-12 lg:pt-4 gap-6`
             : "flex gap-4 overflow-x-auto"
         }
       >
@@ -36,7 +36,7 @@ export default function ProductGrid({
 
       {/* REST */}
       {showEditorial && (
-        <div className={`grid grid-cols-2 md:grid-cols-${columns} gap-6 p-12 mt-6`}>
+        <div className={`grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-6 lg:pt-4 md:p-12 mt-6`}>
           {rest.map(p => (
             <ProductCard key={p.id} product={p} />
           ))}

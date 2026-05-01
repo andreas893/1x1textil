@@ -258,12 +258,12 @@ useEffect(() => {
 
         <div className="flex gap-4 pb-4 pt-4 overflow-x-auto no-scrollbar snap-x snap-mandatory">
         {subcategories.map(cat => (
-            <a href={`/shop/${cat.slug}`} key={cat.id} className="min-w-[240px] snap-start">
+            <Link to={`/shop/${cat.slug}`} key={cat.id} className="min-w-[240px] snap-start">
             <div>
                 <img src={cat.image || "/fallback.jpg"} className="w-full h-70 object-cover rounded-[5px]" />
                 <p className="mt-2">{cat.name} →</p>
             </div>
-            </a>
+            </Link>
         ))}
         </div>
       </section>
