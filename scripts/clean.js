@@ -1,9 +1,10 @@
 import fs from "fs"
 import csv from "csv-parser"
 import { createObjectCsvWriter } from "csv-writer"
+import stripBom from "strip-bom-stream"
 
 const INPUT_FILES = [
-  "./data/file14.csv"
+  "./data/file8.csv"
 ]
 
 const MAX_PRODUCTS = 30
@@ -11,18 +12,23 @@ const MAX_PRODUCTS = 30
 for (const file of INPUT_FILES) {
   const rows = []
 
-  fs.createReadStream(file)
-    .pipe(csv())
-    .on("data", (row) => {
-      // behold kun nødvendige felter
-      rows.push({
-        Name: row.Name,
-        Regular_price: row["Regular price"],
-        Images: row.Images,
-        Categories: row.Categories,
-        Description: row.Description
-      })
+fs.createReadStream(file)
+  .pipe(stripBom())
+  .pipe(csv({
+    separator: ";",
+    skipLines: 1,
+    mapHeaders: ({ header }) => header.trim()
+  }))
+  .on("data", (row) => {
+    rows.push({
+      Name: row["Name"],
+      Regular_price: row["Regular price"],
+      Images: row["Images"],
+      Categories: row["Categories"],
+      Description: row["Description"],
+      Type: row["Type"]
     })
+  })
     .on("end", async () => {
       //  fjern tomme
       let clean = rows.filter(r => r.Name && r.Categories)
@@ -64,5 +70,6 @@ for (const file of INPUT_FILES) {
       await writer.writeRecords(clean)
 
       console.log(`Clean file created: ${output}`)
+      console.log(rows[0])
     })
 }
