@@ -40,6 +40,7 @@ const CATEGORY_PARENT_MAP = {
   DIY: "Bøger & DIY",
 
   Kort: "Papir & Prints",
+  "Kort og print": "Papir & Prints",
   Prints: "Papir & Prints"
 }
 
@@ -129,9 +130,10 @@ const CATEGORY_SYNONYMS = {
   // ---------- PRINT ----------
   kort: "Kort",
   korter: "Kort",
-
   print: "Prints",
-  prints: "Prints"
+  prints: "Prints",
+  "kort og print": "Papir & Prints",
+  "kort og prints": "Papir & Prints"
 }
 
 const MAIN_CATEGORIES = [
@@ -334,6 +336,6 @@ async function importFile(filePath) {
 }
 
 // RUN
-await importFile("./data/file14-clean.csv")
+await importFile("./data/file8-clean.csv")
 
 console.log("Import færdig ✅")
