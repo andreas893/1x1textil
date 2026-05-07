@@ -5,6 +5,7 @@ import { Link } from "react-router-dom"
 import { useRef } from "react"
 import ArtistModul from "../components/ArtistModul"
 import ProductGrid from "../components/ProductGrid"
+import { useCategories } from "../context/CategoryContext"
 import { SlidersHorizontal } from "lucide-react"
 import { ArrowDownWideNarrow } from "lucide-react"
 
@@ -29,23 +30,7 @@ const PAGE_SIZE = 32
 
 const totalPages = Math.ceil(totalCount / PAGE_SIZE)
 
-// fetch kateori
-async function fetchCategory() {
-  const { data, error } = await supabase
-    .from("categories")
-    .select("*")
-    .eq("slug", slug)
-    .single()
-
-  if (error) {
-    console.log("Category error:", error)
-    return
-  }
-
-  setCategory(data)
-  console.log(products)
-  return data
-}
+const { categories, loading } = useCategories()
 
 //fetch produkter 
 async function fetchProducts(cat) {
@@ -105,35 +90,21 @@ async function fetchProducts(cat) {
   setTotalCount(count || 0)
 }
 
-async function fetchSubcategories(cat) {
-  const { data, error } = await supabase
-    .from("categories")
-    .select("*")
-    .eq("parent_id", cat.id)
-
-  if (error) {
-    console.log("Subcategory error:", error)
-    return
-  }
-
-  setSubcategories(data || [])
+function fetchSubcategories(cat) {
+  const subs = categories.filter(c => c.parent_id === cat.id)
+  setSubcategories(subs)
 }
 
 
 
-async function fetchParent(cat) {
+function fetchParent(cat) {
   if (!cat.parent_id) {
-    setParent(null) // resetter hver gang man skifter til en ny kategori
+    setParent(null)
     return
   }
 
-  const { data } = await supabase
-    .from("categories")
-    .select("*")
-    .eq("id", cat.parent_id)
-    .single()
-
-  setParent(data)
+  const parentCat = categories.find(c => c.id === cat.parent_id)
+  setParent(parentCat)
 }
 
 // Hent artists
@@ -185,19 +156,20 @@ async function fetchArtists(cat) {
 
 //fetch kategori, produkter, breadcrumbs
 useEffect(() => {
-  async function init() {
-    const cat = await fetchCategory()
+  if (!categories.length) return
 
-    if (!cat) return
+  const cat = categories.find(c => c.slug === slug)
 
-    await fetchProducts(cat)
-    await fetchSubcategories(cat)
-    await fetchParent(cat)
-    await fetchArtists(cat)
-  }
+  if (!cat) return
 
-  init()
-}, [slug, page])
+  setCategory(cat)
+
+  fetchProducts(cat)
+  fetchSubcategories(cat)
+  fetchParent(cat)
+  fetchArtists(cat)
+
+}, [slug, page, categories])
 
 // mousewheel scroll
 useEffect(() => {

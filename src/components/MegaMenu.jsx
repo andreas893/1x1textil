@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react"
+import { useCategories } from "../context/CategoryContext"
 import { Link } from "react-router-dom"
-import supabase from "../lib/Supabase"
+import NavCategories from "./NavCategories"
 
 const MENU_STRUCTURE = [
   {
@@ -42,34 +42,7 @@ const MENU_STRUCTURE = [
 ]
 
 export default function MegaMenu() {
-  const [menuData, setMenuData] = useState([])
-  const [featured, setFeatured] = useState([])
-
-  useEffect(() => {
-    fetchMenu()
-  }, [])
-
-  async function fetchMenu() {
-  const { data: categories } = await supabase
-    .from("categories")
-    .select("*")
-
-  const merged = MENU_STRUCTURE.map(section => ({
-    ...section,
-    children: section.children
-      .map(name => categories.find(c => c.name === name))
-      .filter(Boolean)
-  }))
-
-  setMenuData(merged)
-
-  //  vælg 4 underkategorier
-  const allChildren = merged.flatMap(s => s.children)
-
-  const shuffled = [...allChildren].sort(() => 0.5 - Math.random())
-
-  setFeatured(shuffled.slice(0, 4))
-}
+    const { menuData, loading } = useCategories()
 
   return (
     <div className="grid grid-cols-[3fr_1fr] gap-12 items-start h-[60vh]">
@@ -113,28 +86,9 @@ export default function MegaMenu() {
       </div>
 
       {/* HØJRE: 4 BILLEDER for aktiv sektion */}
-      <div className="grid grid-cols-2 gap-2">
-        {featured.map(cat => (
-          
-          <Link
-            key={cat.id}
-            to={`/shop/${cat.slug}`}
-            className="group relative overflow-hidden rounded-[5px] aspect-square bg-gray-100"
-          >
-            {cat.image && (
-              <img
-                src={cat.image}
-                alt={cat.name}
-                className="w-full h-full block object-cover transition-transform duration-300 group-hover:scale-105"
-              />
-              
-            )}
-            <span className="absolute bottom-0 left-0 right-0 p-2 body-sm text-white bg-gradient-to-t from-black/50">
-        {cat.name}
-      </span>
-          </Link>
-        ))}
-      </div>
+      
+       <NavCategories menuData={menuData} />
+      
 
     </div>
   )
