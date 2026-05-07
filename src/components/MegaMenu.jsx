@@ -45,7 +45,7 @@ export default function MegaMenu() {
     const { menuData, loading } = useCategories()
 
   return (
-    <div className="grid grid-cols-[3fr_1fr] gap-12 items-start h-[60vh]">
+    <div className="grid grid-cols-[3fr_1fr] gap-12 items-start h-[60vh] absolute top-full left-0 right-0 bg-white border-t border-b border-gray-100 shadow-sm z-50 px-10 py-8">
 
       {/* VENSTRE: KATEGORIER */}
       <div className="flex gap-12">

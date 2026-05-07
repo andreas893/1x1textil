@@ -92,14 +92,14 @@ export function CategoryProvider({ children }) {
     fetchCategories()
   }, [])
 
-  // 🔥 useMemo SKAL LIGGE HER (inde i funktionen)
+  // useMemo SKAL LIGGE HER (inde i funktionen)
   const value = useMemo(() => ({
     menuData,
     categories,
     loading
   }), [menuData, categories, loading])
 
-  // 🔥 return SKAL OGSÅ LIGGE HER
+  //  return SKAL OGSÅ LIGGE HER
   return (
     <CategoryContext.Provider value={value}>
       {children}
