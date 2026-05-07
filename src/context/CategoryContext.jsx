@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from "react"
+import { createContext, useContext, useEffect, useState, useMemo } from "react"
 import supabase from "../lib/Supabase"
 
 const MENU_STRUCTURE = [
@@ -20,7 +20,7 @@ const MENU_STRUCTURE = [
   {
     name: "Accessories",
     slug: "accessories",
-    children: ["Taser", "Tørklæder"]
+    children: ["Tasker", "Tørklæder"]
   },
   {
     name: "Tekstil",
@@ -47,11 +47,34 @@ export function CategoryProvider({ children }) {
   const [categories, setCategories] = useState([])
   const [loading, setLoading] = useState(true)
 
+  function buildMenu(data) {
+    const categoryMap = Object.fromEntries(
+      data.map(c => [c.name, c])
+    )
+
+    return MENU_STRUCTURE.map(section => ({
+      ...section,
+      children: section.children
+        .map(name => categoryMap[name])
+        .filter(Boolean)
+    }))
+  }
+
   useEffect(() => {
     async function fetchCategories() {
+      const cached = sessionStorage.getItem("categories")
+
+      if (cached) {
+        const parsed = JSON.parse(cached)
+        setCategories(parsed)
+        setMenuData(buildMenu(parsed))
+        setLoading(false)
+        return
+      }
+
       const { data, error } = await supabase
         .from("categories")
-        .select("*")
+        .select("id, name, slug, image")
 
       if (error) {
         console.error(error)
@@ -59,24 +82,26 @@ export function CategoryProvider({ children }) {
         return
       }
 
+      sessionStorage.setItem("categories", JSON.stringify(data))
+
       setCategories(data)
-
-      const merged = MENU_STRUCTURE.map(section => ({
-        ...section,
-        children: section.children
-          .map(name => data.find(c => c.name === name))
-          .filter(Boolean)
-      }))
-
-      setMenuData(merged)
+      setMenuData(buildMenu(data))
       setLoading(false)
     }
 
     fetchCategories()
-  }, []) // kører kun én gang
+  }, [])
 
+  // useMemo SKAL LIGGE HER (inde i funktionen)
+  const value = useMemo(() => ({
+    menuData,
+    categories,
+    loading
+  }), [menuData, categories, loading])
+
+  //  return SKAL OGSÅ LIGGE HER
   return (
-    <CategoryContext.Provider value={{ menuData, categories, loading }}>
+    <CategoryContext.Provider value={value}>
       {children}
     </CategoryContext.Provider>
   )
