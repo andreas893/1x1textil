@@ -137,7 +137,7 @@ function CategorySection() {
   if (!categories.length) return null;
 
   return (
-    <section className="py-16 px-4 md:px-12">
+    <section className="py-16 px-4 border-b md:px-12">
       <div className="relative">
 
         {/* Scroll container */}

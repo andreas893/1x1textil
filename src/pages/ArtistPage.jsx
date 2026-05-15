@@ -95,7 +95,7 @@ function extractCategories(products) {
   return unique.filter(
     c =>
       c.slug !== "kunsthaandvaerkere" &&
-      c.slug !== "keramik" // valgfri hvis du kun vil have underkategorier
+      c.slug !== "keramik"
   )
 }
 
