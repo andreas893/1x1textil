@@ -1,5 +1,6 @@
 import React from "react";
 import CategorySection from "../components/CategorySection";
+import FeaturedProductsSection from "../components/FeaturedProductsSection";
 import { Link } from "react-router-dom";
 
 function HomePage() {
@@ -32,11 +33,9 @@ function HomePage() {
 
       <CategorySection/>
 
-      <section>
-        <div className=""></div>
 
-        <div></div>
-      </section>
+      <FeaturedProductsSection />
+
     </div>
   );
 }

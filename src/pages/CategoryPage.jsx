@@ -80,7 +80,7 @@ async function fetchProducts(cat) {
         item.products.id,
         {
           ...item.products,
-          category: item.categories?.name // 👈 HER
+          category: item.categories?.name // HER
         }
       ])
   ).values()

@@ -6,7 +6,8 @@ export default function ProductGrid({
   layout = "grid",        // "grid" | "horizontal"
   showEditorial = false,
   editorialIndex = 12,
-  columns = 4
+  columns = 4,
+  variant = "default",
 }) {
   if (!products.length) return null
 
@@ -16,18 +17,28 @@ export default function ProductGrid({
   return (
     <div>
 
-      {/* GRID */}
+      {/* 2 forskellige layouts til produktgriddet */}
       <div
         className={
           layout === "grid"
             ? `grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 p-6 md:p-12 lg:pt-4 gap-6`
-            : "flex gap-4 overflow-x-auto"
+            : "overflow-x-auto scrollbar-hide no-scrollbar"
         }
       >
 
-        {first.map(p => (
-          <ProductCard key={p.id} product={p} />
-        ))}
+        {layout === "horizontal" ? (
+          <div className="flex gap-2 px-4 mr-4 lg:px-12 snap-x snap-mandatory">
+            {first.map(p => (
+              <div key={p.id} className="snap-start pr-4 lg:pr-4">
+                <ProductCard product={p} variant={variant}/>
+              </div>
+            ))}
+          </div>
+        ) : (
+          first.map(p => (
+            <ProductCard key={p.id} product={p} variant={variant} />
+          ))
+        )}
 
       </div>
 
