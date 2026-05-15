@@ -1,12 +1,13 @@
 import React from "react";
 import CategorySection from "../components/CategorySection";
 import FeaturedProductsSection from "../components/FeaturedProductsSection";
+import Mission from "../components/Mission";
 import { Link } from "react-router-dom";
 
 function HomePage() {
   return (
     <div className="text-(--color-text)">
-      <section className="hero grid grid-cols-2 border-b-1">
+      <section className="hero grid grid-cols-2 border-b">
         <div className="p-12 h-full flex flex-col ">
           <h1 className="h1 pb-4">Dansk kunsthåndværk</h1>
 
@@ -35,6 +36,8 @@ function HomePage() {
 
 
       <FeaturedProductsSection />
+
+      <Mission />
 
     </div>
   );
