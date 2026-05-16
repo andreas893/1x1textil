@@ -2,6 +2,7 @@ import React from "react";
 import CategorySection from "../components/CategorySection";
 import FeaturedProductsSection from "../components/FeaturedProductsSection";
 import Mission from "../components/Mission";
+import ArtistSection from "../components/ArtistSection";
 import { Link } from "react-router-dom";
 
 function HomePage() {
@@ -38,6 +39,8 @@ function HomePage() {
       <FeaturedProductsSection />
 
       <Mission />
+
+      <ArtistSection />
 
     </div>
   );
