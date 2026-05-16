@@ -5,19 +5,19 @@ export default function ArtistModul({ artists = [], title = "Kunsthåndværkere"
   if (!artists.length) return null
 
   return (
-    <section className="mt-20 p-12 bg-surface">
+    <section className="mt-20 bg-surface">
 
-      <h2 className="h2 mb-6">
+      <h2 className="h2 px-4 mb-6 pt-8 lg:px-12">
         {title}
       </h2>
 
-      <div className="flex overflow-x-auto no-scrollbar snap-x snap-mandatory gap-4">
+      <div className="flex overflow-x-auto no-scrollbar snap-x gap-4 px-4 snap-mandatory pb-8 lg:px-12">
 
         {artists.slice(0, 6).map(artist => (
           <Link
             to={`/artist/${artist.slug}`}
             key={artist.id}
-            className="group min-w-[340px] p-2 flex flex-col gap-4"
+            className="group min-w-[340px] w-full flex flex-col gap-2"
           >
             
             <div className="overflow-hidden">

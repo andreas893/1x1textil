@@ -40,7 +40,7 @@ function HomePage() {
 
       <Mission />
 
-      <ArtistSection />
+      
 
     </div>
   );

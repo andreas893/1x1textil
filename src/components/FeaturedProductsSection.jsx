@@ -97,7 +97,7 @@ export default function FeaturedProductsSection() {
 
   return (
     <div className="mt-12">
-       <div className="flex items-center justify-between mb-6 px-12">
+       <div className="flex items-center justify-between mb-6 px-4 md:px-12 lg:px-12">
             <h2 className="h2">Butikkens favoritter.</h2>
 
             <Link className="flex items-center">
@@ -107,7 +107,7 @@ export default function FeaturedProductsSection() {
 
 
         
-        <div className="px-12 mb-4 lg:hidden">
+        <div className="px-4 md:px-12 mb-4 lg:hidden">
              <button
                 onClick={() => setIsFilterOpen(true)}
                 className="body flex items-center gap-2"
