@@ -6,7 +6,6 @@ export default function ProductGrid({
   layout = "grid",        // "grid" | "horizontal"
   showEditorial = false,
   editorialIndex = 12,
-  columns = 4,
   variant = "default",
 }) {
   if (!products.length) return null
@@ -21,7 +20,7 @@ export default function ProductGrid({
       <div
         className={
           layout === "grid"
-            ? `grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 p-6 md:p-12 lg:pt-4 gap-6`
+            ? `grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 px-4 md:px-12 py-4 md:py-8 gap-4 md:gap-6`
             : "overflow-x-auto scrollbar-hide no-scrollbar"
         }
       >
@@ -47,9 +46,9 @@ export default function ProductGrid({
 
       {/* REST */}
       {showEditorial && (
-        <div className={`grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-6 lg:pt-4 md:p-12 mt-6`}>
+        <div className={`grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 px-4 md:px-12 py-4 md:py-8 gap-4 md:gap-6`}>
           {rest.map(p => (
-            <ProductCard key={p.id} product={p} />
+            <ProductCard key={p.id} product={p} variant={variant} />
           ))}
         </div>
       )}

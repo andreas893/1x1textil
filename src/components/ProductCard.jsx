@@ -7,7 +7,7 @@ export default function ProductCard({ product, variant = "default" }) {
   if (variant === "featured") {
     return (
       <Link to={`/product/${product.id}`}>
-        <div className="group flex flex-col cursor-pointer rounded-[10px] h-[550px] overflow-hidden min-w-[340px]">
+        <div className="group flex flex-col cursor-pointer rounded-[10px] h-[400px] overflow-hidden ] min-w-[240px] mb-12">
 
           {/* IMAGE */}
           <div className="overflow-hidden">
@@ -59,23 +59,23 @@ export default function ProductCard({ product, variant = "default" }) {
     return (
     <Link to={`/product/${product.id}`}>
                       
-        <div key={product.id} className="group cursor-pointer h-110 bg-surface rounded-[10px] min-w-[340px]">
+        <div key={product.id} className="group cursor-pointer  bg-surface rounded-[10px] ">
 
-            <div className="overflow-hidden">
+            <div className="overflow-hidden aspect-4/4">
                 <img
                     src={product.image}
-                    className="w-full h-76 object-cover rounded-t-[10px] transition-transform duration-300 group-hover:scale-105"
+                    className="w-full h-full object-cover rounded-t-[10px] transition-transform duration-300 group-hover:scale-105"
                 />
             </div>
 
                     
         
-            <div className="mt-2 px-4 flex flex-col gap-1">
+            <div className="mt-2 px-4 pb-4 flex flex-col gap-1">
                 <p className="body-sm opacity-70 border-b w-[30%]">
                     {product.category}
                 </p>
                         
-                <p className="mt-1 body leading-tight line-clamp-2">
+                <p className="mt-1 body-sm leading-tight line-clamp-2 h-[4em] md:h-[4em]">
                     {product.title}
                 </p>
 

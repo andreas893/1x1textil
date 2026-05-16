@@ -12,7 +12,7 @@ export default function NavCategories({ menuData }) {
       key={cat.id}
       to={`/shop/${cat.slug}`}
       className="
-        min-w-[200px] flex-shrink-0 snap-start
+        min-w-[200px] shrink-0 snap-start
         md:min-w-0
         relative aspect-square overflow-hidden rounded-[5px] group
       "

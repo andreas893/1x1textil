@@ -1,114 +1,209 @@
-import { useParams } from "react-router-dom"
-import { useEffect, useState } from "react"
+import { useParams, Link } from "react-router-dom"
+import { useEffect, useState, useRef } from "react"
 import supabase from "../lib/Supabase"
-import { Link } from "react-router-dom"
-import { useRef } from "react"
 import ArtistModul from "../components/ArtistModul"
 import ProductGrid from "../components/ProductGrid"
+import NavCategories from "../components/NavCategories"
 import { useCategories } from "../context/CategoryContext"
 import { SlidersHorizontal } from "lucide-react"
-import { ArrowDownWideNarrow } from "lucide-react"
+import { mixProducts } from "../utils/mixProducts"
 
 export default function CategoryPage() {
-const gridRef = useRef(null)
-const { slug } = useParams()
-const [category, setCategory] = useState(null)
-const [products, setProducts] = useState([])
-const [subcategories, setSubcategories] = useState([])
-const [parent, setParent] = useState(null)
-const [artists, setArtists] = useState([])
+  const gridRef = useRef(null)
+  const { slug } = useParams()
 
-const BREAKPOINT = 12
+  const [category, setCategory] = useState(null)
+  const [products, setProducts] = useState([])
+  const [subcategories, setSubcategories] = useState([])
+  const [parent, setParent] = useState(null)
+  const [artists, setArtists] = useState([])
+  const [sort, setSort] = useState("popular")
+  const [isFilterOpen, setIsFilterOpen] = useState(false)
+  const [artistCounts, setArtistCounts] = useState([])
+  const [selectedArtists, setSelectedArtists] = useState([])
 
-const firstBatch = products.slice(0, BREAKPOINT)
-const restBatch = products.slice(BREAKPOINT)
+  const [page, setPage] = useState(1)
+  const [totalCount, setTotalCount] = useState(0)
 
-const [page, setPage] = useState(1)
-const [totalCount, setTotalCount] = useState(0)
+  const PAGE_SIZE = 32
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE)
 
-const PAGE_SIZE = 32
+  const { categories } = useCategories()
 
-const totalPages = Math.ceil(totalCount / PAGE_SIZE)
+  const filterRef = useRef(null)
 
-const { categories, loading } = useCategories()
+  // fetch products
+  async function fetchProducts(cat) {
 
-//fetch produkter 
-async function fetchProducts(cat) {
+    let categoryIds = [cat.id]
 
-  let categoryIds = [cat.id]
+    const { data: children } = await supabase
+      .from("categories")
+      .select("id")
+      .eq("parent_id", cat.id)
 
-  const { data: children } = await supabase
-    .from("categories")
-    .select("id")
-    .eq("parent_id", cat.id)
+    if (children?.length) {
+      categoryIds = [cat.id, ...children.map(c => c.id)]
+    }
 
-  if (children?.length) {
-    categoryIds = [cat.id, ...children.map(c => c.id)]
-  }
+    //  popular
+    if (sort === "popular") {
 
-  const from = (page - 1) * PAGE_SIZE
-  const to = from + PAGE_SIZE - 1
+      const FETCH_SIZE = 120
 
-  const { data, error, count } = await supabase
-    .from("product_categories")
-    .select(`
-       category_id,
-  categories (
-    id,
-    name
-  ),
-  products (
-    id,
-    title,
-    price,
-    image
+      const { data, error, count } = await supabase
+        .from("products")
+        .select(`
+          id,
+          title,
+          price,
+          image,
+          artist_id,
+          product_categories!inner (
+            category_id,
+            categories (
+              id,
+              name
+            )
+          )
+        `, { count: "exact" })
+        .in("product_categories.category_id", categoryIds)
+        .range(0, FETCH_SIZE - 1)
+
+      if (error) {
+        console.log(error)
+        return
+      }
+
+      let processed = data.map(product => ({
+        ...product,
+        category: product.product_categories?.[0]?.categories?.name || ""
+      }))
+
+      // shuffle → mix → slice
+      processed = processed.sort(() => 0.5 - Math.random())
+
+      processed = mixProducts({
+        products: processed,
+        limit: PAGE_SIZE,
+        groupBy: "artist_id"
+      })
+
+      setProducts(processed)
+      setTotalCount(count || 0)
+      return
+    }
+
+    // ALFABETISK (NORMAL PAGINATION)
+    const from = (page - 1) * PAGE_SIZE
+    const to = from + PAGE_SIZE - 1
+
+    let query = supabase
+      .from("products")
+      .select(`
+        id,
+        title,
+        price,
+        image,
+        artist_id,
+        product_categories!inner (
+          category_id,
+          categories (
+            id,
+            name
+          )
+        )
+      `, { count: "exact" })
+      .in("product_categories.category_id", categoryIds)
+      .order("title", { ascending: true })
+      .range(from, to)
+
+    const { data, error, count } = await query
+
+    if (error) {
+      console.log(error)
+      return
+    }
+
+    const processed = data.map(product => ({
+      ...product,
+      category: product.product_categories?.[0]?.categories?.name || ""
+    }))
+
+      // filter efter artist
+    if (selectedArtists.length > 0) {
+      processed = processed.filter(p =>
+        selectedArtists.includes(p.artist_id)
       )
-    `, { count: "exact" })
-    .in("category_id", categoryIds)
-    .range(from, to)
-
-  if (error) {
-    console.log(error)
-    return
+    }
+    
+    setProducts(processed)
+    setTotalCount(count || 0)
   }
 
-  const unique = [
-  ...new Map(
-    data
-      .filter(item => item.products)
-      .map(item => [
-        item.products.id,
-        {
-          ...item.products,
-          category: item.categories?.name // HER
-        }
-      ])
-  ).values()
-]
-
-  setProducts(unique)
-  setTotalCount(count || 0)
-}
-
-function fetchSubcategories(cat) {
-  const subs = categories.filter(c => c.parent_id === cat.id)
-  setSubcategories(subs)
-}
-
-
-
-function fetchParent(cat) {
-  if (!cat.parent_id) {
-    setParent(null)
-    return
+  function fetchSubcategories(cat) {
+    const subs = categories.filter(c => c.parent_id === cat.id)
+    setSubcategories(subs)
   }
 
-  const parentCat = categories.find(c => c.id === cat.parent_id)
-  setParent(parentCat)
-}
+  function fetchParent(cat) {
+    if (!cat.parent_id) {
+      setParent(null)
+      return
+    }
 
-// Hent artists
-async function fetchArtists(cat) {
+    const parentCat = categories.find(c => c.id === cat.parent_id)
+    setParent(parentCat)
+  }
+
+  async function fetchArtists(cat) {
+
+    let categoryIds = [cat.id]
+
+    const { data: children } = await supabase
+      .from("categories")
+      .select("id")
+      .eq("parent_id", cat.id)
+
+    if (children?.length) {
+      categoryIds = [cat.id, ...children.map(c => c.id)]
+    }
+
+    const { data, error } = await supabase
+      .from("products")
+      .select(`
+        artist_id,
+        artists (
+          id,
+          name,
+          slug,
+          image,
+          bio
+        ),
+        product_categories!inner (
+          category_id
+        )
+      `)
+      .in("product_categories.category_id", categoryIds)
+
+    if (error) {
+      console.log(error)
+      return
+    }
+
+    const unique = [
+      ...new Map(
+        data
+          .filter(item => item.artists)
+          .map(item => [item.artists.id, item.artists])
+      ).values()
+    ]
+
+    setArtists(unique)
+  }
+
+    // fetch artist count - antal produkter
+  async function fetchArtistCounts(cat) {
 
   let categoryIds = [cat.id]
 
@@ -122,93 +217,99 @@ async function fetchArtists(cat) {
   }
 
   const { data, error } = await supabase
-    .from("products")
+    .from("product_categories")
     .select(`
-      artist_id,
-      artists (
-        id,
-        name,
-        slug,
-        image,
-        bio
-      ),
-      product_categories!inner (
-        category_id
+      product:products (
+        artist_id
       )
     `)
-    .in("product_categories.category_id", categoryIds)
+    .in("category_id", categoryIds)
 
   if (error) {
-    console.log("Artist fetch error:", error)
+    console.log(error)
     return
   }
 
-  const unique = [
-    ...new Map(
-      data
-        .filter(item => item.artists)
-        .map(item => [item.artists.id, item.artists])
-    ).values()
-  ]
+  const counts = {}
 
-  setArtists(unique)
+  data.forEach(item => {
+    const artistId = item.product?.artist_id
+    if (!artistId) return
+
+    counts[artistId] = (counts[artistId] || 0) + 1
+  })
+
+  // merge med artist data
+  const result = artists.map(a => ({
+    ...a,
+    count: counts[a.id] || 0
+  }))
+
+  setArtistCounts(result)
 }
 
-//fetch kategori, produkter, breadcrumbs
-useEffect(() => {
-  if (!categories.length) return
+    // main fetch
+  useEffect(() => {
+    if (!categories.length) return
 
-  const cat = categories.find(c => c.slug === slug)
+    const cat = categories.find(c => c.slug === slug)
+    if (!cat) return
 
-  if (!cat) return
+    setCategory(cat)
 
-  setCategory(cat)
+    fetchProducts(cat)
+    fetchSubcategories(cat)
+    fetchParent(cat)
+    fetchArtists(cat)
+    fetchArtists(cat)
+    fetchArtistCounts(cat)
 
-  fetchProducts(cat)
-  fetchSubcategories(cat)
-  fetchParent(cat)
-  fetchArtists(cat)
+  }, [slug, page, categories, sort, selectedArtists])
 
-}, [slug, page, categories])
+  useEffect(() => {
+    setPage(1)
+  }, [slug])
 
-// mousewheel scroll
-useEffect(() => {
-  const el = document.querySelector(".horizontal-scroll")
+  
 
-  if (!el) return
+  // scroll smooth ved sideskift og scroll to top
+  useEffect(() => {
+    if (gridRef.current) {
+      gridRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      })
+    }
+  }, [page])
 
-  const onWheel = e => {
-    if (e.deltaY !== 0) {
-      e.preventDefault()
-      el.scrollLeft += e.deltaY
+  // close overlay ved klik uden for
+  useEffect(() => {
+  if (!isFilterOpen) return
+
+  function handleClickOutside(e) {
+    if (filterRef.current && !filterRef.current.contains(e.target)) {
+      setIsFilterOpen(false)
     }
   }
 
-  el.addEventListener("wheel", onWheel)
+  document.addEventListener("mousedown", handleClickOutside)
 
-  return () => el.removeEventListener("wheel", onWheel)
-}, [])
-
-useEffect(() => {
-  setPage(1)
-}, [slug])
-
-//scroll når page ændres
-useEffect(() => {
-  if (gridRef.current) {
-    gridRef.current.scrollIntoView({
-      behavior: "smooth",
-      block: "start"
-    })
+  return () => {
+    document.removeEventListener("mousedown", handleClickOutside)
   }
-}, [page])
+}, [isFilterOpen])
 
-
+  function toggleArtist(id) {
+  setSelectedArtists(prev =>
+    prev.includes(id)
+      ? prev.filter(a => a !== id)
+      : [...prev, id]
+  )
+}
 
   return (
     <div className="space-y-16 text-(--color-text)">
 
-      {/* HERO */}
       <section className="grid md:grid-cols-2 gap-10 items-center p-12">
         <div>
           <h1 className="text-4xl font-semibold capitalize">{slug}</h1>
@@ -217,107 +318,152 @@ useEffect(() => {
           </p>
         </div>
 
-            <img
-        src={category?.image}
-        className="w-full h-[300px] object-cover"
+        <img
+          src={category?.image}
+          className="w-full h-[300px] object-cover"
         />
       </section>
 
+     
 
-      {/* SUBCATEGORIES */}
-      <section className="bg-(--color-surface) p-12">
-        <h2 className="mb-6 h2 ">Udforsk vores udvalg</h2>
-
-        <div className="flex gap-4 pb-4 pt-4 overflow-x-auto no-scrollbar snap-x snap-mandatory">
-        {subcategories.map(cat => (
-            <Link to={`/shop/${cat.slug}`} key={cat.id} className="min-w-[240px] snap-start">
-            <div>
-                <img src={cat.image || "/fallback.jpg"} className="w-full h-70 object-cover rounded-[5px]" />
-                <p className="mt-2">{cat.name} →</p>
-            </div>
-            </Link>
-        ))}
-        </div>
-      </section>
-
-
-      {/* PRODUCT GRID */}
       <section ref={gridRef}>
-     <div className="text-sm font-serif mb-6 px-12">
-            <Link to="/" className="hover:underline">Hjem</Link>
 
-            <span className="mx-2">/</span>
+        <h2 className="h2 mb-6 pl-12">
+          Alt {slug} fra butikken
+        </h2>
 
-            {parent && (
-                <>
-                <Link to={`/shop/${parent.slug}`} className="hover:underline">
-                    {parent.name}
-                </Link>
-                <span className="mx-2">/</span>
-                </>
-            )}
+        <div className="flex justify-between mb-6 text-sm border-b border-t px-12 py-2">
+          <div className="relative">
+            <button 
+              onClick={() => setIsFilterOpen(true)}
+              className="flex gap-2 cursor-pointer"
+            >
+              Filtrer <SlidersHorizontal size={20}/>
+            </button>
+            
+           {isFilterOpen && (
+            <div className="relative inset-0 z-50"
+            ref={filterRef}>
 
-            <span className="cursor-pointer">{category?.name}</span>
-        </div>
-        
-        <h2 className="h2 mb-6 pl-12">Alt {slug} fra butikken</h2>
+              {/* BACKDROP */}
+              <div
+                className="absolute inset-0"
+                onClick={() => setIsFilterOpen(false)}
+              />
 
-        <div className="flex justify-between mb-6 text-sm border-b border-t pl-12 pr-12 pt-2 pb-2">
-          <button className="flex gap-2 cursor-pointer">Filtrer <SlidersHorizontal size={20}/> </button>
-          <button className="flex gap-2 cursor-pointer">Sorter <ArrowDownWideNarrow size={20}/> </button>
+              {/* PANEL */}
+              <div className="absolute top-auto mt-2 w-[300px] bg-white border rounded-[5px] p-4 z-10"
+              onClick={(e) => e.stopPropagation()}>
+
+                {/* HEADER */}
+                <div className="border-b pb-2 mb-3 flex justify-between items-center">
+                  <span>Filtrer efter kunstner</span>
+
+                  <button
+                    onClick={() => setIsFilterOpen(false)}
+                    className="text-sm opacity-60 cursor-pointer hover:opacity-100"
+                  >
+                    Luk
+                  </button>
+                </div>
+
+                {/* STATUS */}
+                <div className="mb-3 text-sm opacity-60">
+                  {selectedArtists.length === 0
+                    ? "Alle produkter"
+                    : `${selectedArtists.length} valgt`}
+                </div>
+
+                <div className="space-y-2">
+
+                  {/* ALL */}
+                  <button
+                    onClick={() => setSelectedArtists([])}
+                    className={`block cursor-pointer text-left w-full ${
+                      selectedArtists.length === 0 ? "font-medium" : ""
+                    }`}
+                  >
+                    • Alle produkter
+                  </button>
+
+                  {/* ARTISTS */}
+                  {artistCounts.map(a => (
+                    <button
+                      key={a.id}
+                      onClick={() => toggleArtist(a.id)}
+                      className={`
+                        flex justify-between cursor-pointer w-full text-left hover:opacity-70 transition
+                        ${selectedArtists.includes(a.id) ? "font-medium" : ""}
+                      `}
+                    >
+                      <span>
+                        {selectedArtists.includes(a.id) ? "• " : ""}
+                        {a.name}
+                      </span>
+
+                      <span className="opacity-50">
+                        ({a.count})
+                      </span>
+                    </button>
+                  ))}
+
+                </div>
+
+              </div>
+            </div>
+          )}
+          </div>
+         
+
+          <select
+            value={sort}
+            onChange={(e) => {
+              setSort(e.target.value)
+              setPage(1)
+            }}
+            className="cursor-pointer border rounded-[5px] bg-transparent"
+          >
+            <option value="popular">Mest populære</option>
+            <option value="alphabetical">A–Z</option>
+          </select>
+
         </div>
 
         <ProductGrid 
-            products={products}
-            layout="grid"
-            showEditorial={true}
-            columns={4}
+          products={products}
+          layout="grid"
+          showEditorial={true}
         />
-
-    
 
         <div className="flex gap-2 justify-center mt-12">
-
-            <div className="border rounded-[5px]">
-                 {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-                <button
+          <div className="border rounded-[5px]">
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+              <button
                 key={p}
                 onClick={() => setPage(p)}
-                className={`px-3 py-1 cursor-pointer ${
-                    page === p ? "bg-(--color-text) text-white" : ""
-                }`}
-                >
+                className={`
+                  px-3 py-1 cursor-pointer transition
+                  ${
+                    page === p
+                      ? "bg-(--color-text) text-white"
+                      : "bg-white text-(--color-text) hover:bg-(--color-text) hover:text-white"
+                  }
+                `}
+              >
                 {p}
-                </button>
+              </button>
             ))}
-            </div>
-
+          </div>
         </div>
+
       </section>
 
-
-      {/* ARTISTS */}
-        <ArtistModul artists={artists} title={`Kunsthåndværkere inden for ${category?.name}`} />
-
-
-      {/* INSPIRATION */}
-      <section className="grid md:grid-cols-2 gap-10 items-center">
-        <img
-          src="https://images.unsplash.com/photo-1501004318641-b39e6451bec6"
-          className="w-full h-[300px] object-cover"
-        />
-
-        <div>
-          <h3 className="text-xl font-semibold">Inspiration fra butikken</h3>
-          <p className="mt-2 text-gray-600">
-            Opdag nye måder at bruge kunsthåndværk i din hverdag.
-          </p>
-          <button className="mt-4 px-4 py-2 border">
-            Se inspiration
-          </button>
-        </div>
-      </section>
-
+      <ArtistModul 
+        artists={artists} 
+        title={`Kunsthåndværkere inden for ${category?.name}`} 
+      />
     </div>
+
+    
   )
 }
