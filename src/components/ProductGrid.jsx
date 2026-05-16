@@ -27,7 +27,7 @@ export default function ProductGrid({
       >
 
         {layout === "horizontal" ? (
-          <div className="flex gap-2 px-4 mr-4 lg:px-12 snap-x snap-mandatory">
+          <div className="flex gap-2 px-4 mr-4 md:px-12 lg:px-12 snap-x snap-mandatory">
             {first.map(p => (
               <div key={p.id} className="snap-start pr-4 lg:pr-4">
                 <ProductCard product={p} variant={variant}/>
