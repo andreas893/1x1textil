@@ -9,6 +9,9 @@ import './index.css'
 import ProductPage from './pages/ProductPage'
 import ArtistPage from './pages/ArtistPage'
 import Artists from './pages/Artists'
+import InspirationPage from './pages/InspirationPage'
+import PostPage from './pages/PostPage'
+
 
 
 export default function App() {
@@ -25,6 +28,9 @@ export default function App() {
         <Route path="/artist/:slug" element={<ArtistPage />} />
         <Route path="/artists" element={<Artists />} />
         <Route path="/product/:id" element={<ProductPage />} />
+        <Route path="/inspiration/:slug" element={<PostPage />} />
+        <Route path="/inspiration" element={<InspirationPage />} />
+
       </Routes>
 
       <Footer />
