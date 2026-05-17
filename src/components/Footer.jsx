@@ -1,6 +1,6 @@
 export default function Footer() {
   return (
-    <footer className="bg-(--color-bg) text-(--color-text) px-6 py-12 mt-12 md:px-12 space-y-12">
+    <footer className="bg-(--color-bg) text-(--color-text) px-6 py-12 md:px-12 space-y-12">
 
       {/* NEWSLETTER */}
       <section className="text-center max-w-2xl mx-auto space-y-6">

@@ -8,7 +8,7 @@ export default function Mission() {
 
         <div className='p-4 lg:p-12'>
             <div>
-                <h2 className="h2 mt-2 w-[50%] md:w-[30%]">Vi tror på, at det kan mærkes.</h2>
+                <h2 className="h2 mt-2 w-[50%] md:w-[30%]">Vi tror på, at det kan mærkes</h2>
             </div>
 
             <div className="mt-6 flex justify-center">

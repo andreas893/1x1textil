@@ -3,7 +3,7 @@ import { useEffect, useState, useRef } from "react"
 import supabase from "../lib/Supabase"
 import ArtistModul from "../components/ArtistModul"
 import ProductGrid from "../components/ProductGrid"
-import NavCategories from "../components/NavCategories"
+import CategorySubNav from "../components/CategorySubNav"
 import { useCategories } from "../context/CategoryContext"
 import { SlidersHorizontal } from "lucide-react"
 import { mixProducts } from "../utils/mixProducts"
@@ -80,9 +80,17 @@ export default function CategoryPage() {
         category: product.product_categories?.[0]?.categories?.name || ""
       }))
 
-      // shuffle → mix → slice
+      // shuffle
       processed = processed.sort(() => 0.5 - Math.random())
 
+      // Filter før mix
+      if (selectedArtists.length > 0) {
+        processed = processed.filter(p =>
+          selectedArtists.includes(p.artist_id)
+        )
+      }
+
+      // derefter mix
       processed = mixProducts({
         products: processed,
         limit: PAGE_SIZE,
@@ -125,7 +133,7 @@ export default function CategoryPage() {
       return
     }
 
-    const processed = data.map(product => ({
+    let processed = data.map(product => ({
       ...product,
       category: product.product_categories?.[0]?.categories?.name || ""
     }))
@@ -250,26 +258,30 @@ export default function CategoryPage() {
 
     // main fetch
   useEffect(() => {
-    if (!categories.length) return
+  if (!categories.length) return
 
-    const cat = categories.find(c => c.slug === slug)
-    if (!cat) return
 
-    setCategory(cat)
+  const cat = categories.find(c => c.slug === slug)
+  if (!cat) return
 
-    fetchProducts(cat)
-    fetchSubcategories(cat)
-    fetchParent(cat)
-    fetchArtists(cat)
-    fetchArtists(cat)
-    fetchArtistCounts(cat)
+  setCategory(cat)
 
-  }, [slug, page, categories, sort, selectedArtists])
+  fetchProducts(cat)
+  fetchSubcategories(cat)
+  fetchParent(cat)
+  fetchArtists(cat)
+
+}, [slug, page, categories, sort, selectedArtists])
 
   useEffect(() => {
     setPage(1)
   }, [slug])
 
+  // useeffect til artist antal af produkter
+ useEffect(() => {
+  if (!category || artists.length === 0) return
+  fetchArtistCounts(category)
+}, [artists, category])
   
 
   // scroll smooth ved sideskift og scroll to top
@@ -307,32 +319,63 @@ export default function CategoryPage() {
   )
 }
 
-  return (
-    <div className="space-y-16 text-(--color-text)">
+console.log(category)
 
-      <section className="grid md:grid-cols-2 gap-10 items-center p-12">
-        <div>
-          <h1 className="text-4xl font-semibold capitalize">{slug}</h1>
-          <p className="mt-4 max-w-md">
-            Håndlavet keramik med fokus på form, funktion og materialets karakter.
-          </p>
+  return (
+    <div className="space-y-12 text-(--color-text)">
+
+      <section className="grid md:grid-cols-2 gap-6 items-center px-4 pt-8 md:p-12">
+        <div className="flex gap-6 justify-between md:flex lg:flex flex-col md:gap-0">
+          <h1 className="h1">{category?.name}</h1>
+          {category?.intro && (
+            <p className="md:mt-4 body-lg w-2xs">
+              {category.intro}
+            </p>
+          )}
         </div>
 
         <img
           src={category?.image}
-          className="w-full h-[300px] object-cover"
+          className="w-full aspect-3/2 rounded-[5px] object-cover"
         />
       </section>
 
-     
+      {!category?.parent_id && subcategories.length > 0 && (
+        <CategorySubNav 
+          categories={subcategories} 
+          parentName={category.name}
+        />
+      )}
 
-      <section ref={gridRef}>
+      <section ref={gridRef} className="mt-20">
 
-        <h2 className="h2 mb-6 pl-12">
-          Alt {slug} fra butikken
+        <div className="font-serif px-4 pb-6 md:px-12 body-sm">
+          <Link to="/">Hjem</Link>
+
+          {parent && (
+            <>
+              <span className="mx-2">/</span>
+              <Link to={`/shop/${parent.slug}`} className="hover:underline">
+                {parent.name}
+              </Link>
+            </>
+          )}
+
+          {category && (
+            <>
+              <span className="mx-2">/</span>
+              <span className="font-medium text-(--color-text)">
+                {category.name}
+              </span>
+            </>
+          )}
+        </div>
+
+        <h2 className="h2 mb-6 pl-4 md:pl-12">
+          Hele kollektionen af {category?.name}
         </h2>
 
-        <div className="flex justify-between mb-6 text-sm border-b border-t px-12 py-2">
+        <div className="flex justify-between mb-2 text-sm border-b border-t px-4 md:px-12 py-2">
           <div className="relative">
             <button 
               onClick={() => setIsFilterOpen(true)}
