@@ -6,7 +6,7 @@ export default function Mission() {
   return (
     <div className='mt-4 bg-(--color-bg)'>
 
-        <div className='p-4 lg:p-12'>
+        <div className='p-4 md:p-12'>
             <div>
                 <h2 className="h2 mt-2 w-[50%] md:w-[30%]">Vi tror på, at det kan mærkes</h2>
             </div>

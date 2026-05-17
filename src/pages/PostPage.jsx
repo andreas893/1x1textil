@@ -174,13 +174,13 @@ export default function PostPage() {
         )}
 
          {relatedPosts.length > 0 && (
-        <section className="mt-20 px-4 md:px-12">
+        <section className="mt-20 md:px-12">
 
-            <h2 className="h2 mb-6 ">
+            <h2 className="h2 px-4 md:px-0 mb-6 ">
             Flere indlæg
             </h2>
 
-            <div className="no-scrollbar flex gap-4 overflow-x-auto snap-x snap-mandatory
+            <div className="no-scrollbar px-4 md:px-0 flex gap-4 overflow-x-auto snap-mandatory
   md:grid md:grid-cols-3 md:gap-6 md:overflow-visible">
             {relatedPosts.map(p => (
                 <div className="snap-start min-w-[75%] sm:min-w-[45%] md:min-w-0">
