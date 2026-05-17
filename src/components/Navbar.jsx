@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react"
 import MegaMenu from "./MegaMenu"
 import MobileMenu from "./MobileNav"
 import { Link } from "react-router-dom"
+import { useLocation } from "react-router-dom"
 import { ShoppingCart, Heart, Search, Menu, X } from "lucide-react"
 
 
@@ -10,6 +11,7 @@ export default function Navbar() {
   const closeTimer = useRef(null)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const navRef = useRef(null)
+  const location = useLocation()
   const [navHeight, setNavHeight] = useState(0)
 
   function handleEnter() {
@@ -19,7 +21,7 @@ export default function Navbar() {
 
   function handleLeave() {
     // Lille delay så musen kan bevæge sig fra link → menu uden at den lukker
-    closeTimer.current = setTimeout(() => setDesktopMenuOpen(false), 100)
+    closeTimer.current = setTimeout(() => setDesktopMenuOpen(false), 250)
   }
 
   useEffect(() => {
@@ -39,6 +41,12 @@ export default function Navbar() {
     document.body.style.overflow = ""
   }
 }, [mobileMenuOpen])
+
+  // Luk nav on ny page navigation
+  useEffect(() => {
+    setMobileMenuOpen(false)
+    setDesktopMenuOpen(false)
+  }, [location])
   
 
   return (
@@ -75,16 +83,25 @@ export default function Navbar() {
         <div className=" hidden md:flex gap-8 items-center">
 
           {/* SHOP MED MEGAMENU */}
-          <div onMouseEnter={handleEnter} onMouseLeave={handleLeave}>
+          <div
+            onMouseEnter={handleEnter}
+            onMouseLeave={handleLeave}
+          >
             <span className="cursor-pointer select-none">
               Shop +
             </span>
-
-            {/* DESKTOP */}
-            <div className="hidden md:block">
-              {desktopMenuOpen && <MegaMenu />}
-            </div>
           </div>
+
+          {/* MEGAMENU – flyttet ud */}
+          {desktopMenuOpen && (
+            <div
+              onMouseEnter={handleEnter}
+              onMouseLeave={handleLeave}
+              className="absolute left-0 top-full w-full"
+            >
+              <MegaMenu />
+            </div>
+          )}
 
           <Link to="/artists">Kunsthåndværkere</Link>
           <Link to="/inspiration">Inspiration</Link>

@@ -10,7 +10,7 @@ export default function NavCategories({ menuData }) {
        {featured.map(cat => (
     <Link
       key={cat.id}
-      to={`/shop/${cat.slug}`}
+      to={`/shop/${cat.slug}`} 
       className="
         min-w-[200px] shrink-0 snap-start
         md:min-w-0

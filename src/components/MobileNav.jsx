@@ -71,7 +71,7 @@ const CATEGORY_LABELS = {
 
                                 {/* ALT KATEGORI */}
                                 <Link
-                                to={`/Shop/${section.slug}`}
+                                to={`/shop/${section.slug}`}
                                 className="block body-sm flex my-2 items-center font-semibold border-b w-fit"
                                 onClick={onClose}
                                 >
@@ -99,10 +99,10 @@ const CATEGORY_LABELS = {
 
             {/* ANDRE LINKS */}
             <div className="gap-2 flex flex-col body-lg">
-                <Link className="border-b py-2" to="/artists">Kunsthåndværkere</Link>
-                <Link className="border-b py-2" to="/inspiration">Inspiration</Link>
-                <Link className="border-b py-2" to="/om-os">Om os</Link>
-                <Link className="border-b py-2" to="/kontakt">Kontakt</Link>
+                <Link className="border-b py-2" to="/artists" onClick={onClose}>Kunsthåndværkere</Link>
+                <Link className="border-b py-2" to="/inspiration" onClick={onClose}>Inspiration</Link>
+                <Link className="border-b py-2" to="/om-os" onClick={onClose}>Om os</Link>
+                <Link className="border-b py-2" to="/kontakt" onClick={onClose}>Kontakt</Link>
             </div>
 
             {/* BILLEDER */}

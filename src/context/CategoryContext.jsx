@@ -61,38 +61,49 @@ export function CategoryProvider({ children }) {
   }
 
   useEffect(() => {
-    async function fetchCategories() {
-      const cached = sessionStorage.getItem("categories")
+   async function fetchCategories() {
+  const CACHE_KEY = "categories_v1"  // bump når du ændrer schema
+  const MAX_AGE = 1000 * 60 * 30     // 30 minutter
 
-      if (cached) {
-        const parsed = JSON.parse(cached)
-        setCategories(parsed)
-        setMenuData(buildMenu(parsed))
-        setLoading(false)
-        return
-      }
+  const cached = sessionStorage.getItem(CACHE_KEY)
 
-      const { data, error } = await supabase
-        .from("categories")
-        .select("id, name, slug, image")
+  if (cached) {
+    const { data, timestamp } = JSON.parse(cached)
+    const isExpired = Date.now() - timestamp > MAX_AGE
 
-      if (error) {
-        console.error(error)
-        setLoading(false)
-        return
-      }
-
-      sessionStorage.setItem("categories", JSON.stringify(data))
-
+    if (!isExpired) {
       setCategories(data)
       setMenuData(buildMenu(data))
       setLoading(false)
+      return
     }
+    // Udløbet — fall through til fetch
+  }
+
+  const { data, error } = await supabase
+    .from("categories")
+    .select("*")
+
+  if (error) {
+    console.error(error)
+    setLoading(false)
+    return
+  }
+
+  sessionStorage.setItem(CACHE_KEY, JSON.stringify({
+    data,
+    timestamp: Date.now()
+  }))
+
+  setCategories(data)
+  setMenuData(buildMenu(data))
+  setLoading(false)
+}
 
     fetchCategories()
   }, [])
 
-  // useMemo SKAL LIGGE HER (inde i funktionen)
+  // useMemo
   const value = useMemo(() => ({
     menuData,
     categories,
