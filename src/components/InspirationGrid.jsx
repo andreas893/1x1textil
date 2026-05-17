@@ -10,7 +10,7 @@ export default function InspirationGrid({
     <div>
 
       {layout === "horizontal" ? (
-        <div className="flex gap-4 px-4 no-scrollbar overflow-x-auto snap-x snap-mandatory md:hidden">
+        <div className="flex gap-4 px-4 md:px-12 no-scrollbar overflow-x-auto snap-mandatory">
           {posts.map(post => (
             <div key={post.id} className="snap-start min-w-[280px]">
               <PostCard post={post} />

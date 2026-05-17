@@ -3,6 +3,8 @@ import CategorySection from "../components/CategorySection";
 import FeaturedProductsSection from "../components/FeaturedProductsSection";
 import Mission from "../components/Mission";
 import ArtistSection from "../components/ArtistSection";
+import AboutSection from "../components/AboutSection";
+import InspirationSection from "../components/InspirationSection";
 import { Link } from "react-router-dom";
 
 function HomePage() {
@@ -40,7 +42,11 @@ function HomePage() {
 
       <Mission />
 
-      
+      <ArtistSection />
+
+      <AboutSection />
+
+      <InspirationSection />
 
     </div>
   );
