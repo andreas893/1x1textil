@@ -98,10 +98,10 @@ setFilters(uniqueTitles)
 }
 
   return (
-    <div className="space-y-12 text-(--color-text)">
+    <div className="space-y-8 text-(--color-text)">
 
       {/* HERO */}
-      <section className="bg-(--color-surface) p-12 sm:p-8">
+      <section className="bg-(--color-surface) py-8 px-4 md:px-12">
         <h1 className="h1 mb-4">
           Kunsthåndværkere i butikken
         </h1>
@@ -113,12 +113,12 @@ setFilters(uniqueTitles)
       </section>
 
       {/* FILTERS */}
-      <section className="">
-        <h2 className="h2 mb-4 md:px-12 sm:px-8">
+      <section>
+        <h2 className="h2 mb-4 px-4 md:px-12">
           Alle kunsthåndværkere
         </h2>
 
-       <div className="flex gap-2 py-2 flex-wrap border-b border-t sm:px-6 md:px-12">
+       <div className="flex gap-2 py-2 flex-wrap border-b border-t px-4 md:px-12">
         {filters.map(f => {
             const count = 
             f === "Alle"
@@ -143,9 +143,9 @@ setFilters(uniqueTitles)
       </section>
 
       {/* GRID */}
-      <section className="md:px-10 sm:px-8  pt-0">
+      <section className="px-4 pt-0 pb-8 md:px-12">
 
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-6">
 
           {filtered.map(artist => (
             <ArtistCard

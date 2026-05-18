@@ -2,7 +2,7 @@ import { useState, useEffect } from "react"
 import { useParams } from "react-router-dom"
 import { Link } from "react-router-dom"
 import { SlidersHorizontal } from "lucide-react"
-import { ArrowDownWideNarrow } from "lucide-react"
+import { ArrowDownWideNarrow,ArrowRight } from "lucide-react"
 import supabase from "../lib/Supabase"
 import ProductGrid from "../components/ProductGrid"
 import ArtistStory from "../components/ArtistStory"
@@ -61,7 +61,8 @@ async function fetchArtistProducts(artist) {
           id,
           name,
           slug,
-          image
+          image,
+          parent_id
         )
       )
     `, { count: "exact" })
@@ -72,8 +73,20 @@ async function fetchArtistProducts(artist) {
     console.log(error)
     return
   }
+  const processed = (data || []).map(p => {
+  const categories =
+    p.product_categories?.map(pc => pc.categories) || []
 
- setArtistProducts(data || [])
+  const specific =
+    categories.find(c => c.parent_id !== null) || categories[0]
+
+  return {
+    ...p,
+    category: specific?.name || ""
+  }
+})
+
+ setArtistProducts(processed)
 
 const cats = extractCategories(data || [])
 setCategories(cats)
@@ -129,17 +142,19 @@ useEffect(() => {
   return (
     <div className="text-(--color-text)">
        {artist && (
-        <section className="grid md:grid-cols-2 gap-10 h-[70vh] bg-surface text-(--color-text) border">
-
+        <section className="flex flex-col gap-0 md:grid md:grid-cols-2 md:gap-10 bg-surface text-(--color-text) border">
+        <div className="aspect-4/3 md:aspect-auto overflow-hidden">
           <img
             src={artist.image}
-            className="w-full h-[70vh] object-cover"
+            className="w-full md:h-[100%] object-cover object-top"
           />
+        </div>
+         
 
-          <div className="pt-12">
+          <div className="p-4 py-6 flex flex-col justify-center md:pt-12 md:pb-12 w-full h-full">
             <h1 className="h1">{artist.name}</h1>
 
-            <p className="mt-6 w-[80%] body">
+            <p className="mt-6 w-[90%] body">
               {artist.bio}
             </p>
           </div>
@@ -147,18 +162,16 @@ useEffect(() => {
       )}
 
        <div ref={gridRef} className="pt-12 text-(--color-text)">
-           <h2 className="h2 mb-6 pl-12">Værker fra {artist?.name}</h2>
+           <h2 className="h2 mb-6 px-4 md:pl-12">Værker fra {artist?.name}</h2>
 
-        <div className="flex justify-between mb-6 text-sm border-b border-t pl-12 pr-12 pt-2 pb-2">
+        <div className="flex justify-between mb-2 text-sm border-b border-t px-4 md:px-12 pt-2 pb-2">
           <button className="flex gap-2 cursor-pointer">Filtrer <SlidersHorizontal size={20}/> </button>
           <button className="flex gap-2 cursor-pointer">Sorter <ArrowDownWideNarrow size={20}/> </button>
         </div>
 
         <ProductGrid
           products={artistProducts}
-          layout="grid"
           showEditorial={false}
-          columns={4}
         />
       
       <div className="flex gap-2 justify-center mt-6">
@@ -185,13 +198,13 @@ useEffect(() => {
       <ArtistStory artist={artist}/>
 
       {categories.length > 0 && (
-  <section className="p-12">
+  <section className="py-12">
 
-    <h2 className="h2 mb-6">
+    <h2 className="h2 px-4 md:px-12 mb-6">
       Udforsk kategorier fra {artist.name}
     </h2>
 
-    <div className="flex gap-4 overflow-x-auto no-scrollbar snap-x snap-mandatory">
+    <div className="flex gap-4 px-4 md:px-12 overflow-x-auto no-scrollbar snap-mandatory">
 
       {categories.map(cat => (
         <Link
@@ -206,8 +219,8 @@ useEffect(() => {
               className="w-full h-70 object-cover rounded-[5px]"
             />
 
-            <p className="mt-2 group-hover:underline">
-              {cat.name} →
+            <p className="mt-2 flex items-center gap-1 group-hover:underline">
+              {cat.name} <ArrowRight size={18}/>
             </p>
           </div>
 

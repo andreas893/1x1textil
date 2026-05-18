@@ -7,6 +7,7 @@ import CategorySubNav from "../components/CategorySubNav"
 import { useCategories } from "../context/CategoryContext"
 import { SlidersHorizontal } from "lucide-react"
 import { mixProducts } from "../utils/mixProducts"
+import { normalizeProduct } from "../utils/normalizeProduct"
 
 export default function CategoryPage() {
   const gridRef = useRef(null)
@@ -31,6 +32,7 @@ export default function CategoryPage() {
   const { categories } = useCategories()
 
   const filterRef = useRef(null)
+
 
   // fetch products
   async function fetchProducts(cat) {
@@ -63,7 +65,8 @@ export default function CategoryPage() {
             category_id,
             categories (
               id,
-              name
+              name,
+              parent_id
             )
           )
         `, { count: "exact" })
@@ -75,10 +78,7 @@ export default function CategoryPage() {
         return
       }
 
-      let processed = data.map(product => ({
-        ...product,
-        category: product.product_categories?.[0]?.categories?.name || ""
-      }))
+      let processed = data.map(normalizeProduct)
 
       // shuffle
       processed = processed.sort(() => 0.5 - Math.random())
@@ -97,6 +97,7 @@ export default function CategoryPage() {
         groupBy: "artist_id"
       })
 
+      
       setProducts(processed)
       setTotalCount(count || 0)
       return
@@ -118,7 +119,8 @@ export default function CategoryPage() {
           category_id,
           categories (
             id,
-            name
+            name,
+            parent_id
           )
         )
       `, { count: "exact" })
@@ -133,10 +135,7 @@ export default function CategoryPage() {
       return
     }
 
-    let processed = data.map(product => ({
-      ...product,
-      category: product.product_categories?.[0]?.categories?.name || ""
-    }))
+    let processed = data.map(normalizeProduct)
 
       // filter efter artist
     if (selectedArtists.length > 0) {
