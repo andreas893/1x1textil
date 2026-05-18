@@ -3,6 +3,7 @@ import { useEffect, useState } from "react"
 import supabase from "../lib/Supabase"
 import ProductGrid from "../components/ProductGrid"
 import { Heart } from "lucide-react"
+import { normalizeProduct } from "../utils/normalizeProduct"
 
 export default function ProductPage() {
   const { id } = useParams()
@@ -24,23 +25,37 @@ export default function ProductPage() {
 
   //produkter fra samme kunstner
   async function fetchArtistProducts(product) {
-  if (!product.artist_id) return
+    if (!product.artist_id) return
 
-  const { data, error } = await supabase
-    .from("products")
-    .select("id, title, price, image")
-    .eq("artist_id", product.artist_id)
-    .limit(12)
+    const { data, error } = await supabase
+      .from("products")
+      .select(`
+        id,
+        title,
+        price,
+        image,
+        artist_id,
+        product_categories (
+          categories (
+            name,
+            parent_id
+          )
+        )
+      `)
+      .eq("artist_id", product.artist_id)
+      .limit(12)
 
-  if (error) {
-    console.log(error)
-    return
+    if (error) {
+      console.log(error)
+      return
+    }
+
+    const processed = data.map(normalizeProduct)
+
+    const filtered = processed.filter(p => p.id !== product.id)
+
+    setArtistProducts(filtered.slice(0, 8))
   }
-
-  const filtered = data.filter(p => p.id !== product.id)
-
-  setArtistProducts(filtered.slice(0, 8))
-}
 
   //  Hent produkt + relationer
   async function fetchProduct() {
@@ -59,7 +74,8 @@ export default function ProductPage() {
           categories (
             id,
             name,
-            slug
+            slug,
+            parent_id
           )
         )
       `)
@@ -71,7 +87,9 @@ export default function ProductPage() {
       return null
     }
 
-    setProduct(data)
+    const normalized = normalizeProduct(data)
+
+    setProduct(normalized)
     setArtist(data.artists)
 
     return data
@@ -95,13 +113,19 @@ export default function ProductPage() {
   const { data, error } = await supabase
     .from("product_categories")
     .select(`
-      products (
-        id,
-        title,
-        price,
-        image,
-        artist_id
+     products (
+      id,
+      title,
+      price,
+      image,
+      artist_id,
+      product_categories (
+        categories (
+          name,
+          parent_id
+        )
       )
+    )
     `)
     .eq("category_id", categoryId)
     .limit(50)
@@ -116,7 +140,10 @@ export default function ProductPage() {
 // lav flat liste
 let products = [
   ...new Map(
-    data.map(i => [i.products.id, i.products])
+    data.map(i => [
+      i.products.id,
+      normalizeProduct(i.products)
+    ])
   ).values()
 ]
 
@@ -124,7 +151,7 @@ let products = [
 products = products.filter(p => p.id !== product.id)
 
 // fjern artist overlap
-const artistIds = new Set(artistProducts.map(p => p.id))
+const artistIds = new Set(artistProducts.map(p => p.artist_id))
 products = products.filter(p => !artistIds.has(p.id))
 
 // GROUP BY ARTIST
@@ -173,15 +200,15 @@ setRelated(mixed)
     <div className="space-y-16 text-(--color-text)">
 
       {/* HERO */}
-      <section className="grid md:grid-cols-2 gap-12 p-12 bg-(--color-bg) m-0">
+      <section className="grid lg:grid-cols-2 gap-12 p-4 pb-8 md:p-12 bg-(--color-bg) m-0">
 
         <img
           src={product.image}
-          className="w-full h-[600px] object-cover rounded"
+          className="w-full aspect-square md:min-h-[70vh] object-cover rounded"
         />
 
         <div>
-          <h1 className="h1">
+          <h1 className="h2">
             {product.title}
           </h1>
 
@@ -216,11 +243,11 @@ setRelated(mixed)
           </p>
 
           <div className="flex gap-2 mt-6">
-              <button className="cursor-pointer px-6 py-3 w-[50%] bg-(--color-accent) text-(--color-text) rounded-[10px]">
+              <button className="cursor-pointer px-6 py-3 w-[50%] bg-surface text-(--color-text) rounded-[10px]">
             Læg i kurv
           </button>
 
-          <button className="cursor-pointer px-4 py-3 bg-(--color-accent) text-(--color-text) rounded-[10px]">
+          <button className="cursor-pointer px-4 py-3 bg-surface text-(--color-text) rounded-[10px]">
             <Heart/>
           </button>
           </div>
@@ -234,23 +261,23 @@ setRelated(mixed)
 
       {/* ARTIST */}
       {artist && (
-        <section className="grid md:grid-cols-2 gap-10 border-(--color-text) border">
-
+        <section className="grid md:grid-cols-2 md:gap-10 border-(--color-text) border">
+          
           <img
             src={artist.image}
             className="w-full h-full object-cover"
           />
 
-          <div className="pt-12">
+          <div className="p-4 flex flex-col justify-center md:py-12">
             <h2 className="h2">{artist.name}</h2>
 
-            <p className="mt-2 w-[80%] body">
+            <p className="mt-2 w-full body leading-relaxed">
               {artist.bio}
             </p>
 
             <Link
               to={`/artist/${artist.slug}`}
-              className="mt-4 inline-block bg-(--color-text) text-white px-3 py-1 rounded-[10px]"
+              className="mt-4 inline-block w-fit bg-surface px-3 py-1 rounded-[10px]"
             >
               Se alle værker
             </Link>
@@ -261,10 +288,10 @@ setRelated(mixed)
 
       {/* RELATERET */}
      {artistProducts.length > 0 && (
-  <section className="p-12 pt-0">
+  <section className="pt-0">
 
-    <h2 className="mb-6 h2">
-      Flere produkter fra {artist.name}
+    <h2 className="mb-6 px-4 md:px-12 h2">
+      Mere fra {artist.name}
     </h2>
 
     <ProductGrid
@@ -277,10 +304,10 @@ setRelated(mixed)
 )}
 
 {related.length > 0 && (
-  <section className="p-12 pt-0">
+  <section className="pt-0 mb-12">
 
-    <h2 className="mb-6 h2">
-      Flere {product.product_categories?.[0]?.categories?.name}
+    <h2 className="mb-6 px-4 md:px-12 h2">
+      Flere produkter i {product.product_categories?.[0]?.categories?.name}
     </h2>
 
     <ProductGrid

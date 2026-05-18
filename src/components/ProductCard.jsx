@@ -59,9 +59,9 @@ export default function ProductCard({ product, variant = "default" }) {
     return (
     <Link to={`/product/${product.id}`}>
                       
-        <div key={product.id} className="group cursor-pointer  bg-surface rounded-[10px] ">
+        <div key={product.id} className="group cursor-pointer bg-surface rounded-[10px] max-h-[500px] overflow-hidden">
 
-            <div className="overflow-hidden aspect-4/4">
+            <div className="overflow-hidden aspect-square">
                 <img
                     src={product.image}
                     className="w-full h-full object-cover rounded-t-[10px] transition-transform duration-300 group-hover:scale-105"

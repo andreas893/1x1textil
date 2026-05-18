@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom"
-
+import { ArrowRight } from "lucide-react"
 
 export default function ArtistCard({ artist }) {
     const navigate = useNavigate()
@@ -50,12 +50,12 @@ export default function ArtistCard({ artist }) {
         )}
 
         {/*  CTA */}
-        <div className="flex justify-between items-center px-4 py-3">
+        <div className="flex justify-between items-center px-2 md:px-4 py-3">
 
             <span className="body-sm opacity-70">{artist.productCount === 1 ? "1 Værk" : `${artist.productCount} Værker`}</span>
           
-          <span className="body-sm bg-(--color-text) text-white p-2 rounded-[10px] transition-transform duration-500 group-hover:opacity-80 md:p-2 ">
-            Se værker →
+          <span className="flex items-center body-sm bg-(--color-text) text-white p-2 rounded-[10px] transition-transform duration-500 group-hover:opacity-80 md:p-2 ">
+            Se værker <ArrowRight size={18}/>
           </span>
 
         </div>
